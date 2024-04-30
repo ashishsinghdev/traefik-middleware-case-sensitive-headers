@@ -1,33 +1,33 @@
-package casesensitiveheaders
+package traefik_middleware_case_sensitive_headers
 
 import (
 	"context"
 	"net/http"
 )
 
-type AddHeaderConfig struct {
+type addHeaderConfig struct {
 	Name  string `json:"headerName,omitempty"`
 	Value string `json:"headerValue,omitempty"`
 }
 
-func CreateAddHeaderConfig(name string, value string) *AddHeaderConfig {
-	return &AddHeaderConfig{
+func createAddHeaderConfig(name string, value string) *addHeaderConfig {
+	return &addHeaderConfig{
 		Name:  name,
 		Value: value,
 	}
 }
 
-type RemoveHeaderConfig struct {
+type removeHeaderConfig struct {
 	Names []string `json:"headerName,omitempty"`
 }
 
-func CreateRemoveHeaderConfig(names []string) *RemoveHeaderConfig {
-	return &RemoveHeaderConfig{
+func createRemoveHeaderConfig(names []string) *removeHeaderConfig {
+	return &removeHeaderConfig{
 		Names: names,
 	}
 }
 
-type ModifyHeaderConfig struct {
+type modifyHeaderConfig struct {
 	From             string `json:"from,omitempty"`
 	To               string `json:"to,omitempty"`
 	Prefix           string `json:"prefix,omitempty"`
@@ -36,8 +36,8 @@ type ModifyHeaderConfig struct {
 	OverwriteIfExist bool   `json:"overwriteIfExist,omitempty"`
 }
 
-func CreateModifyHeaderConfig(from string, to string, prefix string, suffix string, removeOriginal bool, overwriteIfExist bool) *ModifyHeaderConfig {
-	return &ModifyHeaderConfig{
+func createModifyHeaderConfig(from string, to string, prefix string, suffix string, removeOriginal bool, overwriteIfExist bool) *modifyHeaderConfig {
+	return &modifyHeaderConfig{
 		From:             from,
 		To:               to,
 		Prefix:           prefix,
@@ -47,21 +47,21 @@ func CreateModifyHeaderConfig(from string, to string, prefix string, suffix stri
 	}
 }
 
-type HeaderConfig struct {
-	AddHeaders    []*AddHeaderConfig    `json:"addHeaders,omitempty"`
-	RemoveHeaders []*RemoveHeaderConfig `json:"removeHeaders,omitempty"`
-	ModifyHeaders []*ModifyHeaderConfig `json:"modifyHeaders,omitempty"`
+type headerConfig struct {
+	AddHeaders    []*addHeaderConfig    `json:"addHeaders,omitempty"`
+	ModifyHeaders []*modifyHeaderConfig `json:"modifyHeaders,omitempty"`
+	RemoveHeaders *removeHeaderConfig   `json:"removeHeaders,omitempty"`
 }
 
-func CreateHeaderConfig() *HeaderConfig {
-	return &HeaderConfig{}
+func createHeaderConfig() *headerConfig {
+	return &headerConfig{}
 }
 
 type Config struct {
-	Headers []*HeaderConfig `json:"headers,omitempty"`
+	Headers *headerConfig `json:"headers,omitempty"`
 }
 
-func CreateConfig(headers []*HeaderConfig) *Config {
+func CreateConfig() *Config {
 	return &Config{}
 }
 
@@ -78,23 +78,18 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 }
 
 func (headerRewrite *ProcessHeader) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	for _, header := range headerRewrite.config.Headers {
-		rewriteHeaders(&req.Header, header)
-	}
+	rewriteHeaders(&req.Header, headerRewrite.config.Headers)
 	headerRewrite.next.ServeHTTP(rw, req)
 }
 
-func rewriteHeaders(headers *http.Header, headerConfig *HeaderConfig) {
+func rewriteHeaders(headers *http.Header, headerConfig *headerConfig) {
 	for _, addHeaderConfig := range headerConfig.AddHeaders {
 		(*headers)[addHeaderConfig.Name] = []string{addHeaderConfig.Value}
 	}
 
-	for _, removeHeaderConfig := range headerConfig.RemoveHeaders {
-		for _, headerName := range removeHeaderConfig.Names {
-			headers.Del(headerName)
-			delete((*headers), headerName)
-		}
-
+	for _, headerName := range headerConfig.RemoveHeaders.Names {
+		headers.Del(headerName)
+		delete((*headers), headerName)
 	}
 
 	for _, modifyHeaderConfig := range headerConfig.ModifyHeaders {
@@ -111,7 +106,7 @@ func rewriteHeaders(headers *http.Header, headerConfig *HeaderConfig) {
 					headerValue = modifyHeaderConfig.Prefix + headerValue
 				}
 				if len(modifyHeaderConfig.Suffix) > 0 {
-					headerValue = headerValue + modifyHeaderConfig.Suffix
+					headerValue += modifyHeaderConfig.Suffix
 				}
 				(*headers)[modifyHeaderConfig.To] = []string{headerValue}
 			}
@@ -121,6 +116,5 @@ func rewriteHeaders(headers *http.Header, headerConfig *HeaderConfig) {
 			headers.Del(modifyHeaderConfig.From)
 			delete((*headers), modifyHeaderConfig.From)
 		}
-
 	}
 }

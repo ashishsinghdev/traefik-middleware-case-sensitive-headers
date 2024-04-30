@@ -1,0 +1,43 @@
+---
+http:
+  routers:
+    whoami-router:
+      entryPoints:
+      - http
+      middlewares:
+      - casesensitiveheaders
+      service: service-whoami
+      rule: Path(`/whoami`)
+  services:
+    service-whoami:
+      loadBalancer:
+        servers:
+        - url: http://localhost:5000/
+        passHostHeader: true
+  middlewares:
+    casesensitiveheaders:
+      plugin:
+        case-sensitive-headers:
+          headers:
+            addHeaders:
+            - name: X-To-Add-Header-1
+              value: X-To-Add-Header-1-Value
+            - name: X-To-Add-Header-2
+              value: X-To-Add-Header-2-Value
+            removeHeaders:
+              names:
+              - X-To-Remove-Header-1
+              - Sec-Fetch-Site
+            modifyHeaders:
+            - from: X-Forwarded-Server
+              to: X-Auth
+              prefix: Bearer 
+              suffix: ;
+              removeOriginal: false
+              overwriteIfExist: false
+            - from: X-Forwarded-Server
+              to: SSL_CLIENT_CERT
+              prefix: -----BEGIN CERTIFICATE-----
+              suffix: -----END CERTIFICATE-----
+              removeOriginal: false
+              overwriteIfExist: true

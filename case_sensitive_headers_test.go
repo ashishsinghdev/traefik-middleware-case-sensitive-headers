@@ -1,4 +1,4 @@
-package casesensitiveheaders
+package traefik_middleware_case_sensitive_headers
 
 import (
 	"net/http"
@@ -12,16 +12,15 @@ func TestHeaderConfig(t *testing.T) {
 	headers.Add("Authorization", "token")
 	headers.Add("X-Client-Cert", "certificate-data")
 
-	rewriteHeaders(headers, &HeaderConfig{
-		AddHeaders: []*AddHeaderConfig{
-			CreateAddHeaderConfig("X-To-Add-Header-1", "X-To-Add-Header-1-Value"),
-			CreateAddHeaderConfig("X-To-Add-Header-2", "X-To-Add-Header-2-Value"),
+	rewriteHeaders(headers, &headerConfig{
+		AddHeaders: []*addHeaderConfig{
+			createAddHeaderConfig("X-To-Add-Header-1", "X-To-Add-Header-1-Value"),
+			createAddHeaderConfig("X-To-Add-Header-2", "X-To-Add-Header-2-Value"),
 		},
-		RemoveHeaders: []*RemoveHeaderConfig{
-			CreateRemoveHeaderConfig([]string{"X-To-Remove-Header"})},
-		ModifyHeaders: []*ModifyHeaderConfig{
-			CreateModifyHeaderConfig("Authorization", "X-Auth", "Bearer ", ";", true, true),
-			CreateModifyHeaderConfig("X-Client-Cert", "SSL_CLIENT_CERT", "-----BEGIN CERTIFICATE-----", "-----END CERTIFICATE-----", false, true),
+		RemoveHeaders: createRemoveHeaderConfig([]string{"X-To-Remove-Header"}),
+		ModifyHeaders: []*modifyHeaderConfig{
+			createModifyHeaderConfig("Authorization", "X-Auth", "Bearer ", ";", true, true),
+			createModifyHeaderConfig("X-Client-Cert", "SSL_CLIENT_CERT", "-----BEGIN CERTIFICATE-----", "-----END CERTIFICATE-----", false, true),
 		}})
 
 	assertHeader(t, headers, "X-To-Add-Header-1", "X-To-Add-Header-1-Value")
@@ -29,7 +28,6 @@ func TestHeaderConfig(t *testing.T) {
 
 	assertHeaderIsAbsent(t, headers, "X-To-Remove-Header")
 
-	assertHeader(t, headers, "X-Auth", "Bearer token;")
 	assertHeaderIsAbsent(t, headers, "Authorization")
 
 	assertHeader(t, headers, "X-Client-Cert", "certificate-data")

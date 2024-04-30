@@ -1,0 +1,40 @@
+---
+global:
+  checkNewVersion: true
+  sendAnonymousUsage: false
+api:
+  insecure: true
+  dashboard: true
+  debug: true
+experimental:
+  localPlugins:
+    case-sensitive-headers:
+      moduleName: github.com/ashishsinghdev/traefik-middleware-case-sensitive-headers
+entryPoints:
+  http:
+    address: ":8000"
+    proxyProtocol:
+      insecure: true
+    forwardedHeaders:
+      insecure: true
+  traefik:
+    address: ":9000"
+    proxyProtocol:
+      insecure: true
+    forwardedHeaders:
+      insecure: true
+providers:
+  file:
+    filename: provider/rules-middleware.yml
+log:
+  level: DEBUG
+  format: json
+  filePath: "logs/log.log"
+accessLog:
+  filePath: "logs/access-log.log"
+  format: json
+  fields:
+    defaultMode: keep
+    headers:
+      defaultMode: keep
+  

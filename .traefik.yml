@@ -2,30 +2,31 @@ displayName: Custom Case Sensitive Headers
 type: middleware
 iconPath: .assets/icon.png
 
-import: github.com/ashishsinghdev/case-sensitive-headers
+import: github.com/ashishsinghdev/traefik-middleware-case-sensitive-headers
 
 summary: 'Custom Case Sensitive Headers'
 
 testData:
-  HeaderConfig:
-    AddHeaders:
-      - Name: "X-To-Add-Header-1"
-        Value: "X-To-Add-Header-1-Value"
-      - Name: "X-To-Add-Header-2"
-        Value: "X-To-Add-Header-2-Value"
-    RemoveHeaders:
-      - "X-To-Remove-Header-1"
-      - "X-To-Remove-Header-2"
-    ModifyHeaders:
-      - From: "Authorization"
-        To: "X-Auth"
-        Prefix: "Bearer "
-        Suffix: ";"
-        RemoveOriginal: true
-        OverwriteIfExist: false
-      - From: "X-Client-Cert"
-        To: "SSL_CLIENT_CERT"
-        Prefix: "-----BEGIN CERTIFICATE-----"
-        Suffix: "-----END CERTIFICATE-----"
-        RemoveOriginal: false
-        OverwriteIfExist: true
+  headers:
+    addHeaders:
+    - name: X-To-Add-Header-1
+      value: X-To-Add-Header-1-Value
+    - name: X-To-Add-Header-2
+      value: X-To-Add-Header-2-Value
+    removeHeaders:
+      names:
+      - X-To-Remove-Header-1
+      - X-To-Remove-Header-2
+    modifyHeaders:
+    - from: Authorization
+      to: X-Auth
+      prefix: Bearer 
+      suffix: ;
+      removeOriginal: true
+      overwriteIfExist: false
+    - from: X-Client-Cert
+      to: SSL_CLIENT_CERT
+      prefix: -----BEGIN CERTIFICATE-----
+      suffix: -----END CERTIFICATE-----
+      removeOriginal: false
+      overwriteIfExist: true
